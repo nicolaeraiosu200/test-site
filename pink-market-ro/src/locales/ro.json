@@ -1,0 +1,22 @@
+{
+  "title": "Piața Roz",
+  "description": "Bine ai venit pe Piața Roz, locul perfect pentru a vinde și a cumpăra articole frumoase!",
+  "createPost": {
+    "header": "Creează o Postare",
+    "passwordPrompt": "Introdu parola pentru a crea o postare:",
+    "nameLabel": "Numele articolului:",
+    "descriptionLabel": "Descrierea articolului:",
+    "priceLabel": "Prețul:",
+    "submitButton": "Publică Postarea",
+    "successMessage": "Postarea ta a fost creată cu succes!",
+    "errorMessage": "Parola introdusă este greșită. Te rugăm să încerci din nou."
+  },
+  "home": {
+    "header": "Postările Disponibile",
+    "noPosts": "Nu există postări disponibile în acest moment."
+  },
+  "footer": {
+    "contact": "Contactează-ne",
+    "about": "Despre noi"
+  }
+}

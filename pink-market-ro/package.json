@@ -1,0 +1,31 @@
+{
+  "name": "pink-market-ro",
+  "version": "1.0.0",
+  "description": "O aplicație de vânzare pentru articole, cu un design prietenos pentru fete.",
+  "main": "src/index.tsx",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "keywords": [
+    "react",
+    "vite",
+    "pink",
+    "market",
+    "girls"
+  ],
+  "author": "Numele Tău",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-scripts": "5.0.0",
+    "tailwindcss": "^2.2.19"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4",
+    "postcss": "^8.4.5"
+  }
+}

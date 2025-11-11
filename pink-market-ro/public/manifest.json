@@ -1,0 +1,21 @@
+{
+  "name": "Pink Market",
+  "short_name": "PinkMarket",
+  "description": "O aplicație pentru vânzarea de articole, dedicată fetelor.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffccff",
+  "theme_color": "#ff66b2",
+  "icons": [
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
