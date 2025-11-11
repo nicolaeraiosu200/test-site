@@ -1,1 +1,781 @@
 
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <!-- Configurare esențială pentru a asigura că site-ul este complet responsive -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magia Roz - Piața Secretă</title>
+
+    <!-- Incarcare Tailwind CSS CDN pentru stilizare rapidă și responsivă -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Import Font Awesome pentru iconițe -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Configurare Tailwind pentru a include paleta de culori tematică -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    // Paleta de culori tematică: roz, mov, turcoaz pentru un aspect "girly"
+                    colors: {
+                        'primary-pink': '#FF69B4',     // Hot Pink
+                        'secondary-purple': '#A855F7', // Violet
+                        'accent-teal': '#20C997',      // Turcoaz/Teal
+                        'background-light': '#FFF0F5', // Lavender Blush (fundal ușor)
+                        'card-bg': '#FFE4E1',          // Misty Rose
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        // Animații personalizate
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pop-in': 'pop-in 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        // Keyframes pentru animatia de plutire (float)
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        // Keyframes pentru animatia de aparitie (pop-in)
+                        'pop-in': {
+                            '0%': { transform: 'scale(0.8)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Blocul de Stiluri Personalizate (CSS) -->
+    <!-- Aici adăugăm animațiile și stilurile complexe care nu sunt ușor de realizat cu doar clase Tailwind -->
+    <style>
+        /* Setarea fontului implicit pentru tot corpul documentului */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light); /* Fundal deschis */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Stil pentru cardurile de postare */
+        .post-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            animation: pop-in 0.5s ease-out forwards; /* Aplicăm animația pop-in */
+            opacity: 0; /* Începem cu opacitate 0 pentru animația pop-in */
+        }
+
+        /* Efect de 3D la hover pe carduri */
+        .post-card:hover {
+            transform: translateY(-5px) rotateX(2deg);
+            box-shadow: 0 20px 30px rgba(255, 105, 180, 0.5), 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Stil personalizat pentru butonul principal "Creează Postare" */
+        .main-cta-button {
+            background-image: linear-gradient(135deg, #FF69B4 0%, #A855F7 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(255, 105, 180, 0.4);
+        }
+
+        .main-cta-button:hover {
+            box-shadow: 0 15px 30px rgba(168, 85, 247, 0.6);
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        /* Animație de pulse mai lentă pentru evidențiere */
+        .animated-pulse-slow {
+            animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Stiluri pentru input-uri și textarea-uri */
+        input:focus, textarea:focus {
+            border-color: #FF69B4 !important;
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.5) !important;
+        }
+
+        /* Stil pentru mesajul de notificare (Toast) */
+        .toast-message {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Stil pentru fundalul modalului */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        /* Stil pentru animația de încărcare (Loader) */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #FF69B4;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none; /* Ascuns implicit */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Flexbox pentru a menține footer-ul la baza paginii */
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100%;
+            align-items: center;
+        }
+        main {
+            flex-grow: 1;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body class="bg-background-light text-gray-800 antialiased">
+
+    <!-- Containerul Principal al Aplicației -->
+    <div id="app-container" class="max-w-7xl mx-auto">
+
+        <!-- Antet (Header) - Cu animație de plutire (float) pe iconițe -->
+        <header class="w-full p-4 md:p-6 bg-card-bg shadow-lg sticky top-0 z-10">
+            <div class="flex justify-between items-center max-w-6xl mx-auto">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-magic text-primary-pink text-3xl animated-float"></i>
+                    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-secondary-purple">
+                        Magia Roz
+                    </h1>
+                </div>
+                <!-- Butonul CTA (Call to Action) - Protejat prin parolă -->
+                <button id="open-password-modal-btn"
+                        class="main-cta-button text-white font-bold py-2 px-4 rounded-full shadow-lg animated-pulse-slow text-sm md:text-base transition duration-300 ease-in-out transform hover:scale-105">
+                    <i class="fas fa-plus mr-2"></i>
+                    Creează Postare
+                </button>
+            </div>
+            <p id="user-info" class="text-xs text-gray-500 mt-2 text-center md:text-right">
+                ID Utilizator: Se încarcă...
+            </p>
+        </header>
+
+        <!-- Conținutul Principal (Main Content) - Lista de Postări -->
+        <main class="container mx-auto px-4 py-8">
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-primary-pink">
+                Anunțuri Vesele și Frumoase
+            </h2>
+
+            <!-- Grid-ul pentru postările de vânzare -->
+            <div id="posts-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Aici vor fi randate postările din Firestore -->
+                <div id="loading-initial" class="col-span-full flex justify-center items-center py-12">
+                    <div class="loader-lg">
+                        <i class="fas fa-spinner fa-spin text-4xl text-secondary-purple"></i>
+                        <p class="mt-4 text-secondary-purple font-semibold">Se încarcă magia...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mesaj afișat când nu există postări -->
+            <div id="no-posts-message" class="hidden text-center py-12">
+                <i class="fas fa-heart-crack text-5xl text-gray-400 mb-4"></i>
+                <p class="text-xl font-semibold text-gray-600">Încă nu sunt postări. Fii prima care creează una!</p>
+            </div>
+        </main>
+
+        <!-- Subsol (Footer) -->
+        <footer class="w-full bg-secondary-purple p-4 mt-8">
+            <div class="max-w-6xl mx-auto text-center text-white text-sm">
+                <p>&copy; <span id="current-year"></span> Magia Roz. Creat cu ❤️ și mult sclipici.</p>
+                <div class="flex justify-center space-x-4 mt-2">
+                    <a href="#" class="hover:text-primary-pink transition duration-200"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="hover:text-primary-pink transition duration-200"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Mesaj de Notificare (Toast Component) -->
+        <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-3 pointer-events-none">
+            <!-- Mesajele Toast vor fi adăugate aici de către funcția showToast -->
+        </div>
+
+        <!-- MODAL 1: Introducere Parolă (Ascuns implicit) -->
+        <div id="password-modal" class="hidden fixed inset-0 flex items-center justify-center z-40 modal-backdrop transition-opacity duration-300">
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300"
+                 style="border: 3px solid #FF69B4;">
+                <h3 class="text-2xl font-bold mb-4 text-primary-pink text-center">Acces Secret</h3>
+                <p class="text-gray-600 mb-4 text-center">Introdu parola magică pentru a accesa formularul de postare:</p>
+                <input type="password" id="secret-password-input" placeholder="Parola..."
+                       class="w-full p-3 mb-4 border-2 border-primary-pink/50 rounded-lg focus:ring-primary-pink/70 transition duration-300">
+                <p id="password-error" class="text-red-500 text-sm mb-4 hidden font-medium text-center">
+                    Parola este greșită.
+                </p>
+                <div class="flex justify-between space-x-3">
+                    <button id="check-password-btn"
+                            class="flex-1 bg-secondary-purple text-white font-bold py-3 rounded-xl hover:bg-secondary-purple/90 transition duration-200 shadow-md">
+                        <div id="password-loader" class="loader mx-auto"></div>
+                        <span id="password-btn-text">Verifică</span>
+                    </button>
+                    <button id="close-password-modal-btn"
+                            class="bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-xl hover:bg-gray-400 transition duration-200 shadow-md">
+                        Anulează
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 2: Formular de Creare Postare (Ascuns implicit) -->
+        <div id="post-creation-modal" class="hidden fixed inset-0 flex items-center justify-center z-40 modal-backdrop transition-opacity duration-300">
+            <div class="bg-card-bg p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-lg transform scale-95 transition-transform duration-300"
+                 style="border: 4px solid #A855F7;">
+                <h3 class="text-2xl font-bold mb-6 text-secondary-purple text-center">Creează Anunțul Tău</h3>
+                <form id="new-post-form">
+
+                    <!-- Câmp: Numele Produsului -->
+                    <div class="mb-4">
+                        <label for="post-name" class="block text-sm font-medium text-gray-700 mb-1">Numele Produsului</label>
+                        <input type="text" id="post-name" required maxlength="100"
+                               class="w-full p-3 border border-primary-pink/30 rounded-lg bg-white focus:border-primary-pink transition duration-300"
+                               placeholder="Ex: Rochie de balet sclipitoare">
+                    </div>
+
+                    <!-- Câmp: Prețul -->
+                    <div class="mb-4">
+                        <label for="post-price" class="block text-sm font-medium text-gray-700 mb-1">Preț (RON)</label>
+                        <div class="relative">
+                            <input type="number" id="post-price" required min="0.01" step="0.01"
+                                   class="w-full p-3 pl-10 border border-primary-pink/30 rounded-lg bg-white focus:border-primary-pink transition duration-300"
+                                   placeholder="Ex: 50.99">
+                            <span class="absolute left-3 top-3.5 text-gray-400 font-bold">RON</span>
+                        </div>
+                    </div>
+
+                    <!-- Câmp: Descrierea -->
+                    <div class="mb-6">
+                        <label for="post-description" class="block text-sm font-medium text-gray-700 mb-1">Descriere Detaliată</label>
+                        <textarea id="post-description" required rows="4" maxlength="500"
+                                  class="w-full p-3 border border-primary-pink/30 rounded-lg bg-white focus:border-primary-pink transition duration-300 resize-none"
+                                  placeholder="Detalii despre mărime, culoare, stare, etc."></textarea>
+                    </div>
+
+                    <!-- Butoane de Acțiune -->
+                    <div class="flex justify-between space-x-3">
+                        <button type="submit" id="submit-post-btn"
+                                class="flex-1 main-cta-button text-white font-bold py-3 rounded-xl transition duration-300 ease-in-out">
+                            <div id="post-loader" class="loader mx-auto"></div>
+                            <span id="post-btn-text">Postează Magia</span>
+                        </button>
+                        <button type="button" id="close-post-creation-modal-btn"
+                                class="bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-xl hover:bg-gray-400 transition duration-200">
+                            Închide
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT JAVASCRIPT: Logica Aplicatiei si Interactiunea cu Firestore -->
+    <!-- Utilizăm type="module" pentru a importa modulele Firebase necesare -->
+    <script type="module">
+        // =====================================================================================
+        // I. IMPORTURI ESENȚIALE FIREBASE
+        // =====================================================================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, onSnapshot, addDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =====================================================================================
+        // II. VARIABILE GLOBALE ȘI CONFIGURARE
+        // =====================================================================================
+        
+        // 1. Variabile de Mediu (Furnizate de Canvas)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // 2. Instanțe Firebase
+        let app = null;
+        let db = null;
+        let auth = null;
+        let userId = null; // ID-ul utilizatorului autentificat sau anonim
+        const COLLECTION_NAME = 'girl-store-posts'; // Numele colecției pentru postări
+
+        // 3. Constante de Securitate
+        const SECRET_PASSWORD = 'musca';
+        const MAX_PASSWORD_RETRIES = 3;
+        let passwordRetries = 0;
+
+        // 4. Referințe DOM
+        const postsGrid = document.getElementById('posts-grid');
+        const noPostsMessage = document.getElementById('no-posts-message');
+        const passwordModal = document.getElementById('password-modal');
+        const postCreationModal = document.getElementById('post-creation-modal');
+        const passwordInput = document.getElementById('secret-password-input');
+        const passwordError = document.getElementById('password-error');
+        const checkPasswordBtn = document.getElementById('check-password-btn');
+        const newPostForm = document.getElementById('new-post-form');
+        const userDisplay = document.getElementById('user-info');
+        const postCreationBtnText = document.getElementById('post-btn-text');
+        const postCreationLoader = document.getElementById('post-loader');
+
+
+        // =====================================================================================
+        // III. FUNCȚII UTILITY GENERALE
+        // =====================================================================================
+
+        /**
+         * @description Afișează un mesaj de notificare temporar (Toast) pe ecran.
+         * @param {string} message - Mesajul de afișat.
+         * @param {'success'|'error'|'info'} type - Tipul mesajului pentru stilizare.
+         */
+        const showToast = (message, type = 'info') => {
+            console.log(`Toast: ${message}`);
+            const toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) return;
+
+            // Determinarea culorilor pe baza tipului de mesaj
+            let bgColor = 'bg-gray-800';
+            let iconClass = 'fas fa-info-circle';
+            let iconColor = 'text-white';
+
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-accent-teal'; // Turcoaz pentru succes
+                    iconClass = 'fas fa-check-circle';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-500';
+                    iconClass = 'fas fa-times-circle';
+                    break;
+                case 'info':
+                default:
+                    bgColor = 'bg-secondary-purple'; // Mov pentru informații
+                    iconClass = 'fas fa-info-circle';
+                    break;
+            }
+
+            // Crearea elementului de notificare (Toast)
+            const toast = document.createElement('div');
+            toast.className = `toast-message p-4 pr-10 rounded-xl shadow-lg text-white ${bgColor} flex items-center space-x-3 opacity-0 transform translate-x-10 pointer-events-auto`;
+            toast.innerHTML = `
+                <i class="${iconClass} text-xl ${iconColor}"></i>
+                <span class="font-medium text-sm">${message}</span>
+                <button class="absolute top-1 right-2 text-sm opacity-80 hover:opacity-100" onclick="this.parentNode.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // Animație de intrare
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-x-10');
+                toast.classList.add('opacity-100', 'translate-x-0');
+            }, 50);
+
+            // Animație de ieșire și ștergere după 5 secunde
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-x-0');
+                toast.classList.add('opacity-0', 'translate-x-10');
+                // Ștergerea din DOM după ce animația de ieșire s-a terminat
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 5000);
+        };
+        // Atașăm funcția la window pentru a fi accesibilă din HTML-ul din toast
+        window.showToast = showToast;
+
+
+        /**
+         * @description Formatează un obiect timestamp Firebase într-un șir de caractere lizibil.
+         * @param {object} timestamp - Obiectul Timestamp de la Firestore.
+         * @returns {string} - Data și ora formatate.
+         */
+        const formatTimestamp = (timestamp) => {
+            if (!timestamp || !timestamp.seconds) return 'Data necunoscută';
+            const date = new Date(timestamp.seconds * 1000);
+            return date.toLocaleDateString('ro-RO', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        };
+
+        /**
+         * @description Gestionează starea vizuală de încărcare a unui buton.
+         * @param {boolean} isLoading - Starea de încărcare (true/false).
+         * @param {HTMLElement} button - Elementul buton.
+         * @param {HTMLElement} textElement - Elementul text din interiorul butonului.
+         * @param {HTMLElement} loaderElement - Elementul de încărcare (spinner).
+         * @param {string} originalText - Textul original al butonului.
+         */
+        const toggleLoadingState = (isLoading, button, textElement, loaderElement, originalText) => {
+            button.disabled = isLoading;
+            if (isLoading) {
+                textElement.classList.add('hidden');
+                loaderElement.classList.remove('hidden');
+            } else {
+                textElement.classList.remove('hidden');
+                loaderElement.classList.add('hidden');
+                textElement.textContent = originalText;
+            }
+        };
+
+        // =====================================================================================
+        // IV. FUNCȚII FIREBASE ȘI LOGICĂ DE AUTENTIFICARE
+        // =====================================================================================
+
+        /**
+         * @description Inițializează Firebase, autentifică utilizatorul și setează listener-ul de stare.
+         */
+        const setupFirebase = async () => {
+            if (!firebaseConfig) {
+                showToast("Eroare: Configurația Firebase lipsește. Datele nu vor fi salvate.", 'error');
+                return;
+            }
+
+            try {
+                // Setare nivel de logare pentru debugging
+                setLogLevel('error'); // Setăm la 'error' pentru producție
+                
+                // Inițializarea aplicației Firebase
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Listener pentru starea de autentificare (crucial pentru a aștepta logarea)
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userDisplay.textContent = `ID Utilizator: ${userId.substring(0, 8)}...${userId.substring(userId.length - 8)}`;
+                        showToast(`Autentificare reușită! Bine ai venit.`, 'success');
+                        
+                        // Odată autentificat, putem începe să încărcăm postările
+                        loadPosts();
+                    } else {
+                        // Cazul în care autentificarea eșuează sau nu există utilizator
+                        userId = null;
+                        userDisplay.textContent = 'ID Utilizator: Anonim';
+                        postsGrid.innerHTML = `<p class="col-span-full text-center text-red-500 font-semibold">Eroare de autentificare. Datele nu pot fi preluate.</p>`;
+                    }
+                });
+
+                // Autentificare: Folosim token-ul custom dacă este disponibil, altfel anonim
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+            } catch (error) {
+                console.error("Eroare la inițializarea Firebase sau autentificare:", error);
+                showToast(`Eroare critică la start: ${error.message}`, 'error');
+            }
+        };
+
+        /**
+         * @description Construiește calea către colecția publică în Firestore.
+         * @returns {string} - Calea completă a colecției.
+         */
+        const getPublicCollectionPath = () => {
+            return `artifacts/${appId}/public/data/${COLLECTION_NAME}`;
+        };
+
+        // =====================================================================================
+        // V. FUNCȚII DE VIZUALIZARE ȘI RANDARE
+        // =====================================================================================
+
+        /**
+         * @description Generează markup-ul HTML pentru un singur card de postare.
+         * @param {object} post - Obiectul postare din Firestore.
+         * @returns {string} - Șir de caractere HTML.
+         */
+        const createPostCard = (post) => {
+            const formattedPrice = new Intl.NumberFormat('ro-RO', { style: 'currency', currency: 'RON' }).format(post.price);
+            const dateStr = formatTimestamp(post.timestamp);
+
+            // Generarea unui gradient dinamic pentru fundalul prețului
+            const randomColor1 = ['#A855F7', '#FF69B4', '#20C997'][Math.floor(Math.random() * 3)];
+            const randomColor2 = ['#F9A8D4', '#C4B5FD', '#6EE7B7'][Math.floor(Math.random() * 3)];
+
+            // Cardul folosește un design "glassmorphism" cu umbre moi și margini rotunjite.
+            return `
+                <div class="post-card bg-card-bg/80 backdrop-blur-sm rounded-2xl p-4 shadow-xl flex flex-col justify-between"
+                     data-id="${post.id}">
+                    
+                    <!-- Secțiunea Antet Card -->
+                    <div class="mb-4">
+                        <h3 class="text-xl font-extrabold text-secondary-purple truncate mb-1" title="${post.name}">
+                            <i class="fas fa-star text-primary-pink mr-2"></i>${post.name}
+                        </h3>
+                        <!-- Preț cu gradient și animație subtilă -->
+                        <div class="inline-block px-3 py-1 rounded-full text-white font-black text-lg shadow-md"
+                             style="background-image: linear-gradient(90deg, ${randomColor1} 0%, ${randomColor2} 100%);">
+                            ${formattedPrice}
+                        </div>
+                    </div>
+
+                    <!-- Secțiunea Descriere -->
+                    <p class="text-sm text-gray-700 mb-4 overflow-hidden max-h-24">
+                        ${post.description.substring(0, 150)}${post.description.length > 150 ? '...' : ''}
+                    </p>
+
+                    <!-- Secțiunea Footer Card -->
+                    <div class="mt-auto pt-3 border-t border-primary-pink/20">
+                        <p class="text-xs text-gray-500 italic">
+                            Postat de: <span title="${post.authorId}">Utilizator ${post.authorId.substring(0, 5)}...</span>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <i class="far fa-clock mr-1"></i>${dateStr}
+                        </p>
+                    </div>
+                </div>
+            `;
+        };
+
+        /**
+         * @description Randare real-time a listei de postări în DOM.
+         * @param {Array<object>} posts - Lista de postări de randat.
+         */
+        const renderPosts = (posts) => {
+            const loadingInitial = document.getElementById('loading-initial');
+            if (loadingInitial) loadingInitial.classList.add('hidden'); // Ascunde mesajul de încărcare
+
+            postsGrid.innerHTML = ''; // Golește grid-ul
+            
+            if (posts.length === 0) {
+                noPostsMessage.classList.remove('hidden');
+                return;
+            } else {
+                noPostsMessage.classList.add('hidden');
+            }
+
+            let postsHtml = '';
+            posts.forEach(post => {
+                postsHtml += createPostCard(post);
+            });
+
+            postsGrid.innerHTML = postsHtml;
+            showToast(`S-au încărcat ${posts.length} postări noi!`, 'info');
+        };
+
+        /**
+         * @description Stabilește conexiunea real-time la Firestore pentru a încărca postările.
+         */
+        const loadPosts = () => {
+            if (!db || !userId) {
+                console.error("Firestore sau ID utilizator nu sunt disponibile. Nu se pot încărca postările.");
+                return;
+            }
+
+            const postsCollectionRef = collection(db, getPublicCollectionPath());
+            
+            // Creăm o interogare (query) - nu folosim orderBy pentru a evita indexările complexe, sortăm în JS
+            const q = query(postsCollectionRef);
+
+            // onSnapshot stabilește un listener în timp real
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const posts = [];
+                querySnapshot.forEach((doc) => {
+                    // Adăugăm ID-ul documentului la obiectul postare
+                    posts.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Sortare în JavaScript (cea mai nouă postare prima)
+                posts.sort((a, b) => b.timestamp?.seconds - a.timestamp?.seconds);
+                
+                // Apelăm funcția de randare a postărilor
+                renderPosts(posts);
+
+            }, (error) => {
+                console.error("Eroare la preluarea postărilor (onSnapshot):", error);
+                showToast("Eroare la preluarea datelor în timp real.", 'error');
+            });
+
+            // Recomandare: Returnează unsubscribe pentru a opri listener-ul, deși în acest context nu este necesar
+            return unsubscribe; 
+        };
+
+        // =====================================================================================
+        // VI. LOGICĂ CREARE POSTARE ȘI PAROLĂ
+        // =====================================================================================
+
+        /**
+         * @description Verifică parola introdusă de utilizator și gestionează accesul la formular.
+         * @param {Event} e - Evenimentul de click.
+         */
+        const handlePasswordCheck = async (e) => {
+            e.preventDefault();
+
+            const button = checkPasswordBtn;
+            const textElement = document.getElementById('password-btn-text');
+            const loaderElement = document.getElementById('password-loader');
+
+            toggleLoadingState(true, button, textElement, loaderElement, 'Verifică');
+            
+            // Resetare eroare și input
+            passwordError.classList.add('hidden');
+            const enteredPassword = passwordInput.value.trim().toLowerCase();
+            passwordInput.value = ''; // Șterge parola după încercare din motive de securitate
+
+            // Simulare întârziere pentru UX
+            await new Promise(r => setTimeout(r, 500));
+
+            if (enteredPassword === SECRET_PASSWORD) {
+                // Parolă corectă!
+                showToast("Parolă corectă! Ai acces la formular.", 'success');
+                passwordModal.classList.add('hidden'); // Ascunde modalul de parolă
+                postCreationModal.classList.remove('hidden'); // Afișează formularul de postare
+                passwordRetries = 0; // Resetarea numărului de încercări
+                document.getElementById('post-name').focus(); // Focus pe primul câmp
+            } else {
+                // Parolă incorectă!
+                passwordRetries++;
+                passwordError.textContent = `Parolă greșită. Mai ai ${MAX_PASSWORD_RETRIES - passwordRetries} încercări.`;
+                passwordError.classList.remove('hidden');
+                
+                if (passwordRetries >= MAX_PASSWORD_RETRIES) {
+                    showToast("Prea multe încercări greșite. Acces blocat temporar.", 'error');
+                    passwordModal.classList.add('hidden'); // Închide modalul
+                    // Blocare buton (opțional, dar bun pentru securitate)
+                    openPasswordModalBtn.disabled = true;
+                    setTimeout(() => {
+                        openPasswordModalBtn.disabled = false;
+                        passwordRetries = 0;
+                        showToast("Accesul a fost deblocat. Încearcă din nou.", 'info');
+                    }, 10000); // Blocare 10 secunde
+                } else {
+                    showToast("Parolă incorectă.", 'error');
+                }
+            }
+
+            toggleLoadingState(false, button, textElement, loaderElement, 'Verifică');
+        };
+
+        /**
+         * @description Salvează o nouă postare în Firestore.
+         * @param {Event} e - Evenimentul de submit al formularului.
+         */
+        const handlePostCreation = async (e) => {
+            e.preventDefault();
+
+            if (!db || !userId) {
+                showToast("Eroare: Sistemul nu este gata. Te rugăm să reîncarci pagina.", 'error');
+                return;
+            }
+
+            const button = document.getElementById('submit-post-btn');
+            const textElement = postCreationBtnText;
+            const loaderElement = postCreationLoader;
+            const originalText = 'Postează Magia';
+
+            toggleLoadingState(true, button, textElement, loaderElement, originalText);
+
+            // Preluarea datelor din formular
+            const name = document.getElementById('post-name').value.trim();
+            const price = parseFloat(document.getElementById('post-price').value);
+            const description = document.getElementById('post-description').value.trim();
+
+            if (!name || isNaN(price) || price <= 0 || !description) {
+                showToast("Toate câmpurile (Nume, Preț > 0, Descriere) sunt obligatorii!", 'error');
+                toggleLoadingState(false, button, textElement, loaderElement, originalText);
+                return;
+            }
+
+            try {
+                // Obiectul postare de salvat
+                const newPostData = {
+                    name: name,
+                    price: price,
+                    description: description,
+                    authorId: userId, // Folosim ID-ul utilizatorului autentificat
+                    timestamp: serverTimestamp() // Timp de înregistrare pe server
+                };
+
+                const postsCollectionRef = collection(db, getPublicCollectionPath());
+
+                // Salvarea postării în Firestore
+                await addDoc(postsCollectionRef, newPostData);
+
+                showToast("Postarea ta a fost publicată cu succes! ✨", 'success');
+                
+                // Resetarea formularului și închiderea modalului
+                newPostForm.reset();
+                postCreationModal.classList.add('hidden');
+
+            } catch (error) {
+                console.error("Eroare la adăugarea documentului în Firestore:", error);
+                showToast(`Eroare la publicare: ${error.message}`, 'error');
+            } finally {
+                toggleLoadingState(false, button, textElement, loaderElement, originalText);
+            }
+        };
+
+
+        // =====================================================================================
+        // VII. EVENIMENTE ȘI INIȚIALIZARE
+        // =====================================================================================
+
+        /**
+         * @description Configurează toți ascultătorii de evenimente pentru interfață.
+         */
+        const setupEventListeners = () => {
+            
+            // 1. Buton deschidere modal parolă
+            document.getElementById('open-password-modal-btn').addEventListener('click', () => {
+                passwordModal.classList.remove('hidden');
+                passwordError.classList.add('hidden'); // Resetare mesaj de eroare
+                passwordInput.value = ''; // Asigură-te că inputul e gol
+                passwordInput.focus();
+            });
+
+            // 2. Buton verificare parolă
+            checkPasswordBtn.addEventListener('click', handlePasswordCheck);
+            
+            // Permite apăsarea Enter în modalul de parolă
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handlePasswordCheck(e);
+                }
+            });
+
+            // 3. Buton închidere modal parolă
+            document.getElementById('close-password-modal-btn').addEventListener('click', () => {
+                passwordModal.classList.add('hidden');
+            });
+
+            // 4. Buton închidere modal postare
+            document.getElementById('close-post-creation-modal-btn').addEventListener('click', () => {
+                postCreationModal.classList.add('hidden');
+                newPostForm.reset(); // Resetare formular la închidere
+            });
+
+            // 5. Formular de submit postare
+            newPostForm.addEventListener('submit', handlePostCreation);
+            
+            // 6. Setarea anului curent în footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+        };
+
+        // Rularea funcțiilor de inițializare când DOM-ul este complet încărcat
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            setupFirebase(); // Începe inițializarea Firebase și autentificarea
+        });
+
+    </script>
+</body>
+</html>
